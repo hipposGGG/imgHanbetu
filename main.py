@@ -21,10 +21,10 @@ import random
 
 app = Flask(__name__)
 
-LINE_CHANNEL_ACCESS_TOKEN  = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
 
-line_bot_api  = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
+line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 @app.route("/callback", methods=['POST'])
@@ -41,21 +41,20 @@ def callback():
 
     return 'OK'
 
-
-#テキストメッセージの場合
+# テキストメッセージの場合
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = ''
 
-    #ユーザ名を取得
+    # ユーザ名を取得
     print(event.source)
     if event.source.type == 'user':
-        profile = line_bot_api.get_profaile(event.source.user_id)
+        profile = line_bot_api.get_profile(event.source.user_id)
     elif event.source.type == 'group':
         profile = line_bot_api.get_group_member_profile(
             event.source.group_id, event.source.user_id)
     elif event.source.type == 'room':
-        profile = line_bot_api.get_group_member_profile(
+        profile = line_bot_api.get_room_member_profile(
             event.source.room_id, event.source.user_id)
 
 
@@ -87,16 +86,16 @@ def handle_message(event):
 
 
 
-#スタンプメッセージの場合
+# スタンプメッセージの場合
 @handler.add(MessageEvent, message=StickerMessage)
-def handler_sticker(event):
+def handle_sticker(event):
     sticker_list = [
         '51626496', '51626497', '51626502', '51626504',
         '51626508', '51626511', '51626517', '51626530'
     ]
 
     sticker_message = StickerSendMessage(
-        package_id = '11538'
+        package_id = '11538',
         sticker_id = random.choice(sticker_list)
     )
 
@@ -111,6 +110,6 @@ def send_message(event, message):
         TextSendMessage(text=message)
     )
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     port = int(os.getenv("PORT"))
     app.run(host="0.0.0.0", port = port)
