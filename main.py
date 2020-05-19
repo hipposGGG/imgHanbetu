@@ -21,6 +21,10 @@ import os
 
 import random
 
+from io import BytesIO
+
+from google.cloud import automl_v1beta1
+
 app = Flask(__name__)
 
 LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
@@ -109,6 +113,46 @@ def send_message(event, message):
         event.reply_token,
         TextSendMessage(text=message)
     )
+
+# 画像メッセージの場合
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    message_id = event.message.id
+    message_content = line_bot_api.get_message_content(message_id)
+
+    image_bin = BytesIO(message_content.content)
+    image = image_bin.getvalue()
+    request = get_prediction(image)
+    print(request)
+
+    score = request.payload[0].classification.score
+    display_name = request.payload[0].display_name
+
+    message = str(round(score * 100, 3)) + '％の確率で'
+    if display_name == 'shuhei':
+        message += '周平だね\nロマンスがありあまる'
+    elif display_name == 'murotuyoshi':
+        message += 'ムロツヨシだね\n私以外私じゃないの'
+    elif display_name == 'other':
+        message += '...\n周平でもムロツヨシでもないんじゃない？'
+
+    send_message(event, message)
+
+def get_prediction(content):
+    project_id = 'automl-vision-test-276109'
+    model_id = 'ICN6799445876864450560'
+    prediction_client = automl_v1beta1.PredictionServiceClient()
+    # 環境変数にGOOGLE_APPLICATION_CREDENTIALSを設定していない場合は以下とする.
+    # KEY_FILE = "keyfile.json"
+    # prediction_client = automl_v1beta1.PredictionServiceClient.from_service_account_json(KEY_FILE)
+
+    name = 'projects/{}/locations/us-central1/models/{}'.format(
+        project_id, model_id)
+    payload = {'image': {'image_bytes': content}}
+    params = {}
+    request = prediction_client.predict(name, payload, params)
+    return request
+
 
 
 if __name__ == "__main__":
