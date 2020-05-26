@@ -141,10 +141,10 @@ def handle_image(event):
 def get_prediction(content):
     project_id = 'automl-vision-test-276109'
     model_id = 'ICN6799445876864450560'
-#     prediction_client = automl_v1beta1.PredictionServiceClient()
+    prediction_client = automl_v1beta1.PredictionServiceClient()
     # 環境変数にGOOGLE_APPLICATION_CREDENTIALSを設定していない場合は以下とする.
-    KEY_FILE = "keyfile.json"
-    prediction_client = automl_v1beta1.PredictionServiceClient.from_service_account_json(KEY_FILE)
+#     KEY_FILE = "keyfile.json"
+#     prediction_client = automl_v1beta1.PredictionServiceClient.from_service_account_json(KEY_FILE)
 
     name = 'projects/{}/locations/us-central1/models/{}'.format(
         project_id, model_id)
